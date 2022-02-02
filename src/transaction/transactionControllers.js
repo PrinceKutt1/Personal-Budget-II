@@ -8,8 +8,9 @@ const getTransaction = (req, res) =>{
 
     pool.query(transactionQuerie.getTransaction, (error, results)=>{
         if (!results.rows.length) {
-            res.status(404).send({
+            return res.status(404).send({
             message: "There are no transactions"
+            
             });
       
         };
@@ -19,40 +20,55 @@ const getTransaction = (req, res) =>{
 };
 
 const getTransactionById =(req,res) =>{
-    const budget_id = parseInt(req.params.id);
-    pool.query(transactionQuerie.getTransactionById, [budget_id], (error,results)=>{
-        if (error) throw error;
+    const transaction_id = parseInt(req.params.id);
+    pool.query(transactionQuerie.getTransactionById, [transaction_id], (error,results)=>{
+
+        if(!results.rows.length){
+            return res.send(`There is no transaction with id of ${transaction_id} in the database`)
+          }
+        //if (error) throw error;
+
         res.status(200).json(results.rows);
         return;
     })
 };
 
 const deleteTransactionById = (req,res) =>{
-    const budget_id = parseInt(req.params.id);
+    //const budget_id = parseInt(req.params.transaction_id);
+    const transaction_id = parseInt(req.params.id);
     
-        pool.query(transactionQuerie.deleteTransactionById, [budget_id], (error, results)=>{
-            if(!results.rows.length || budget_id){
-              return res.send(`There is no transaction with id of ${budget_id} in the database`)
+        pool.query(transactionQuerie.getTransactionById, [transaction_id], (error, results)=>{
+            if(!results.rows.length){
+              return res.send(`There is no transaction with id of ${transaction_id } in the database`)
             }
-            //if (error) throw error;
+        pool.query(transactionQuerie.deleteTransactionById, [transaction_id], (error, results)=>{
+
+            if (error) throw error;
             return res.status(200).send('Envelope successfuly deleted from the database');
+        })    
         })
 
     }
-    const updateTransaction = (req,res)=> {
-        const budget_id = parseInt(req.params.budget_id);
-        const date = new Date();
+
+const updateTransaction = (req,res)=> {
+    
+    const transaction_id= parseInt(req.params.id);
+    
+
+    const date = new Date();
         //get trancastion name and amount of transaction to update
-        const {transaction_name, amount} = req.body;
+    const {transaction_name, amount} = req.body;
+    
+    
     
         //check if transaction exists
-        pool.query(queries.getTransactionById,[budget_id], (error, results)=>{
-            const invalidId = !results.rows.length;
-            if(invalidId){
-                return res.send('Transaction does not exist in the database');
-            }
-            pool.query(queries.updateTransaction, [transaction_name,amount,date,budget_id], (error, results)=>{
-                if (error) throw error;
+    pool.query(transactionQuerie.getTransactionById,[transaction_id], (error, results)=>{
+    const invalidId = !results.rows.length;
+    if (invalidId){
+            return res.send('Transaction does not exist in the database');
+        }
+        pool.query(transactionQuerie.updateTransaction, [transaction_name,amount,date,transaction_id], (error, results)=>{
+            if (error) throw error;
                 res.status(200).send('Transaction successfully updated');
             })
             }
@@ -65,8 +81,5 @@ module.exports = {
     getTransaction,
     getTransactionById,
     deleteTransactionById,
-    updateTransaction,
-    
-    
-    
-}
+    updateTransaction,    
+    };

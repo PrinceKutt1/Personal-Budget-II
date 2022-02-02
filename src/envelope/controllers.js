@@ -1,6 +1,7 @@
-
 const pool = require('../../db.js');
 const queries = require('./queries');
+
+
 
 const getEnvelope = (req, res) =>{
     pool.query(queries.getEnvelope, (error, results)=>{
@@ -8,6 +9,8 @@ const getEnvelope = (req, res) =>{
        res.status(200).json(results.rows);  
     });
 };
+
+
 
 const getTransationFromEnvelopeId = (req, res) =>{
     pool.query(queries.getTransactionByEnvelopeId, (error, results)=>{
@@ -22,6 +25,8 @@ const getTransationFromEnvelopeId = (req, res) =>{
     })
 };
 
+
+
 const getEnvelopeById = (req,res) => {
     const id = parseInt(req.params.id);
     pool.query(queries.getEnvelopeById, [id], (error, results) => {
@@ -34,6 +39,8 @@ const getEnvelopeById = (req,res) => {
         res.status(200).json(results.rows);
     });
 };
+
+
 
 const addEnvelope = (req, res) => {
     const { title, budget} = req.body;
@@ -51,6 +58,7 @@ const addEnvelope = (req, res) => {
 };
 
 
+
 const deleteEnvelopeById =(req,res)=>{
     const id = parseInt(req.params.id);
     pool.query(queries.getEnvelopeById, [id], (error, results)=>{
@@ -63,6 +71,7 @@ const deleteEnvelopeById =(req,res)=>{
         pool.query(queries.deleteEnvelopeById, [id], (error, results)=>{
             if (error) throw error;
             res.status(200).send('Envelope successfuly deleted from the database,');
+            return;
         })
 
     }
@@ -70,6 +79,7 @@ const deleteEnvelopeById =(req,res)=>{
 )
 
 };
+
 
 
 const updateEnvelope = (req,res)=> {
@@ -93,6 +103,8 @@ const updateEnvelope = (req,res)=> {
 
 };
 
+
+
 const addEnvelopeTransaction = async (req, res) => {
 	const { fromid, toid, amount } = req.params;
 	const { title } = req.body;
@@ -108,7 +120,22 @@ const addEnvelopeTransaction = async (req, res) => {
 			});
 		}
         //Check to see if there is enough fund in envelope
-        if(budget.rows[0]['amount']< amount){
+         const dbAmount = budget.rows[0]['budget'];
+         const userAmount = Number(amount);
+         //const dbAmount = ['amount'];
+
+         console.log(budget.rows[0])
+         console.log(`Type of dbAmount ${typeof dbAmount}`)
+         console.log(`Type of dbAmount ${typeof dbAmount}`)
+         console.log(`Type of Amount ${typeof amount}`)
+         console.log(`Value of dbAmount ${dbAmount}`)
+
+         console.log(`Value of Amount ${amount}`)
+
+         
+
+
+        if(dbAmount< userAmount){
             return res.status(404).send({
                 message: "Insufficient fund",
                     });
@@ -135,6 +162,7 @@ const addEnvelopeTransaction = async (req, res) => {
 		});
   }
 };
+
 
 module.exports = {
     getEnvelope,
